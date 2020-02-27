@@ -1,11 +1,15 @@
 import requests
 from bs4 import BeautifulSoup
 import logging
+import os.path as path
+import re
+import sys
 
-estilo = "line-height:22px;font-size:16px;font-family:arial,tahoma,verdana"
-tipo_de_archivo = ".txt"
-empty_string = ""
-div_class = "lyrics-body"
+TIPO_ARCHIVO = ".txt"
+PATH_LETRA_CANCIONES = "Scrapping/letra_canciones/"
+PATH_ARCHIVO_CANCIONES = "Scrapping/archivos_canciones/"
+
+estilo = sys.argv[2]
 
 logging.basicConfig(level=logging.INFO)
 
@@ -34,7 +38,7 @@ def get_text_from_url(nombre_del_cantante, url):
     con el propósito de obtener una sopa en BeautifulSoup, para llamar a save_to_file"""
 
     sopa_de_la_cancion = get_soup_from_url(url)
-    texto_de_la_sopa = sopa_de_la_cancion.find("div", id="letra")\
+    texto_de_la_sopa = sopa_de_la_cancion.find("div", id="cnt-letra p402_premium")\
 
     for tag in texto_de_la_sopa:
         return save_to_file(nombre_del_cantante, tag.text)
@@ -46,24 +50,18 @@ def clean_text_of_soup(nombre_del_cantante, text_of_soup):
     que no forman parte de la letra"""
 
     text_without_header = text_of_soup.split(nombre_del_cantante, 1)[1]
-    return text_without_header.split("Agregar a la playlist")[0].rstrip()
+    text_without_numbers = re.compile("[0-9]").split(text_without_header)[3].lstrip()
+    return text_without_numbers.split("Agregar a la playlist")[0].rstrip()
 
 
 def save_to_file(nombre_del_cantante, texto_de_la_cancion):
 
     """ Esta función toma tanto el nombre del cantante, como el texto de una sopa y la guarda en un archivo,
     del que cuenta las palabras, y las devuelve para el contador """
-
-    with open(nombre_del_cantante + tipo_de_archivo, "a") as text_file:
+    with open(PATH_LETRA_CANCIONES + estilo + "/" + nombre_del_cantante + TIPO_ARCHIVO, "a") as text_file:
 
         text_file.write(texto_de_la_cancion)
         text_file.write("\n")
-
-    # TODO Futuro método para poder contar número de palabras
-    # with open(nombre_del_cantante + tipo_de_archivo, "r") as text_file:
-    #
-    #     total_words = [word for line in text_file for word in line.split()]
-    #     return total_words
 
 
 def get_text_from_letras_com_soup(nombre_del_cantante, url):
@@ -71,10 +69,9 @@ def get_text_from_letras_com_soup(nombre_del_cantante, url):
     """Función para guardar las letras de un artista en un archivo"""
 
     soup = get_soup_from_url(url)
-    text_of_soup = soup.find("article").get_text(" ")
-    text_without_header = clean_text_of_soup(nombre_del_cantante, text_of_soup).lstrip()
+    text_of_soup = soup.find("div", class_="cnt-letra p402_premium").get_text(" ").lstrip()
 
-    return save_to_file(nombre_del_cantante, text_without_header)
+    return save_to_file(nombre_del_cantante, text_of_soup)
 
     
 
