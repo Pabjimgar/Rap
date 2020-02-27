@@ -5,8 +5,11 @@ import string
 
 
 CLIENT = MongoClient("localhost", 27017)
-DATABASE = CLIENT["rapstats"]
-COLLECTION = DATABASE["artists_raw"]
+DATABASE = CLIENT["MusicStats"]
+
+
+def set_style_collection(estilo):
+    return DATABASE[estilo]
 
 
 def set_database(database_name):
@@ -17,12 +20,7 @@ def set_collection(collection_name):
     return CLIENT[collection_name]
 
 
-def insert_dictionary_into_collection(dictionary):
-
-    COLLECTION.insert(dictionary)
-
-
-def file_to_mongo(file_path, artist_name, estilo, pais):
+def file_to_mongo(file_path, artist_name, estilo):
 
     """Function designed to save a file with all the words counted under an artist name"""
 
@@ -40,20 +38,21 @@ def file_to_mongo(file_path, artist_name, estilo, pais):
         word_average_per_song = Counting_class.calculate_average_per_song(no_punctuation_file, number_of_songs)
 
         counted_dictionary_raw = len(no_punctuation_file)
-        counted_dictionary_no_sw = len(Spanish_corpus.remove_stopwords(no_punctuation_file))
-        number_of_stopwords = counted_dictionary_raw - counted_dictionary_no_sw
 
-        #Aqui guardamos el objeto que más tardaré registraremos en mongo
+        dictionary_no_sw = Spanish_corpus.remove_stopwords(no_punctuation_file)
+        counted_dictionary_no_sw = len(dictionary_no_sw)
+        number_of_stopwords = counted_dictionary_raw - counted_dictionary_no_sw
+        percentage = counted_dictionary_no_sw / counted_dictionary_raw * 100
+
+        # Aqui guardamos el objeto que más tardaré registraremos en mongo
         final_dictionary = {
             "_id": artist_name,
             "text_raw": no_punctuation_file,
-            "text_no_sw": counted_dictionary_no_sw,
+            "text_no_sw": dictionary_no_sw,
             "number_of_songs": number_of_songs,
             "word_average_per_song": word_average_per_song,
             "number_of_stopwords": number_of_stopwords,
-            "style": estilo,
-            "country": pais,
-
+            "percentage_of_relevant_words": percentage
         }
 
-        insert_dictionary_into_collection(final_dictionary)
+        set_style_collection(estilo).insert(final_dictionary)
