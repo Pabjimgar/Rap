@@ -32,7 +32,7 @@ def compare_artists(lyrics_data, estilo):
     artist_data.plot(kind="bar", x="_id", y=["max_words_per_song", "word_average_per_song",  "min_words_per_song"])
 
     plt.axhline(y=style_data.iloc[0]["max_words_per_song"], color='b', linestyle='-')
-    plt.axhline(y=style_data.iloc[0]["word_average_per_song"], color='g', linestyle='-')
-    plt.axhline(y=style_data.iloc[0]["min_words_per_song"], color='r', linestyle='-')
+    plt.axhline(y=style_data.iloc[0]["word_average_per_song"], color='r', linestyle='-')
+    plt.axhline(y=style_data.iloc[0]["min_words_per_song"], color='g', linestyle='-')
 
     plt.show()

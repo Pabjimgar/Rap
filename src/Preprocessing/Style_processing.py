@@ -26,4 +26,4 @@ def consolidate_style(collection, estilo, collection_to_save):
                 "min_words_per_song": min(lengths)
             }
 
-    collection_to_save.insert(final_dictionary)
+    collection.insert(final_dictionary)
