@@ -1,10 +1,8 @@
 from nltk.corpus import stopwords
 import unidecode
-from collections import Counter
-
 
 stop_words = set(stopwords.words('spanish'))
-extra_stop_words = ["estribillo", "bis", "x2", "x3", "x4", "x5"]
+extra_stop_words = ["estribillo", "bis", "x2", "x3", "x4", "x5", "k", "coros", "", " ", "q", "...", "pa", "ye"]
 
 
 def remove_stopwords(iterable, invalid_words=stop_words):
