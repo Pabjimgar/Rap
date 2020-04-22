@@ -1,5 +1,6 @@
 from pymongo import MongoClient
 from Preprocessing import Counting_class, Spanish_corpus
+from Preprocessing.Tags import Tags
 import string
 
 CLIENT = MongoClient("localhost", 27017)
@@ -21,7 +22,7 @@ def read_artist_from_mongo(estilo, artista, column_name="text_no_sw"):
     return collection.find_one({"_id": artista})[column_name]
 
 
-def file_to_mongo(file_path, artist_name, estilo):
+def file_to_mongo(file_path, artist_name, estilo, n_albums=1):
 
     """Function designed to save a file with all the words counted under an artist name"""
 
@@ -52,18 +53,21 @@ def file_to_mongo(file_path, artist_name, estilo):
         number_of_stopwords = counted_dictionary_raw - num_of_relevant_words
         percentage = num_of_relevant_words / counted_dictionary_raw * 100
 
+        tags = Tags
+
         # Aqui guardamos el objeto que más tardaré registraremos en mongo
         final_dictionary = {
-            "_id": artist_name,
-            "text_raw": no_punctuation_file,
-            "text_no_sw": dictionary_no_sw,
-            "unique_words": unique_words,
-            "number_of_songs": number_of_songs,
-            "word_average_per_song": word_average_per_song,
-            "number_of_stopwords": number_of_stopwords,
-            "percentage_of_relevant_words": percentage,
-            "max_words_per_song": max_song,
-            "min_words_per_song": min_song
+            tags.id: artist_name,
+            tags.text_raw: no_punctuation_file,
+            tags.text_no_sw: dictionary_no_sw,
+            tags.unique_words: unique_words,
+            tags.number_of_songs: number_of_songs,
+            tags.word_average_per_song: word_average_per_song,
+            tags.number_of_stopwords: number_of_stopwords,
+            tags.percentage_of_relevant_words: percentage,
+            tags.max_words_per_song: max_song,
+            tags.min_words_per_song: min_song,
+            tags.number_of_albums: n_albums
         }
 
         set_style_collection(estilo).insert(final_dictionary)

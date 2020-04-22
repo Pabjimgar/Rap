@@ -12,7 +12,7 @@ def show_wordcloud(data, title = None):
         max_words=50,
         max_font_size=40,
         scale=3,
-        # random_state=1 # chosen at random by flipping a coin; it was heads
+        collocations=False
     ).generate(str(data))
 
     plt.axis('off')
@@ -25,6 +25,8 @@ def show_wordcloud(data, title = None):
 
 
 def compare_artists(lyrics_data, estilo):
+
+    """Función diseñada para comparar los artistas de cada estilo entre sí y con el estilo en si mismo"""
 
     artist_data = lyrics_data[lyrics_data["_id"] != estilo]
     style_data = lyrics_data[lyrics_data["_id"] == estilo]
