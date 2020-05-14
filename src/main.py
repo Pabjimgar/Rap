@@ -1,6 +1,8 @@
 from Scrapping import Scrapper
 from Visualization import StyleVisualization, ArtistVisualization
-from Preprocessing import Style_processing, Database_ops
+from Preprocessing import Style_processing, Database_ops, Spider_preprocessing, Tags
+from Preprocessing.Tags import Tags
+from Generator import Generator
 import sys
 import logging
 import os.path
@@ -16,6 +18,8 @@ if __name__ == '__main__':
     cantante = sys.argv[1]
     estilo = sys.argv[2]
     n_albums = sys.argv[3]
+
+    tags = Tags
 
     def loggeo_principio_proceso(accion, cantante, estilo):
         logging.info("accion: " + accion)
@@ -51,23 +55,45 @@ if __name__ == '__main__':
             Style_processing.consolidate_style(docs, STYLES, STYLES)
 
     elif accion.lower() == "leer":
-        checkpoint = str(input("Datos del cantante o del estilo?"))
+        checkpoint = str(input("Datos del cantante, del estilo o proyecto?"))
+
+        stats = Database_ops.set_style_collection(estilo).find()
+        data = pd.DataFrame(list(stats))
 
         if checkpoint.lower() == "cantante":
             loggeo_principio_proceso(accion, cantante, estilo)
-            stats = Database_ops.read_artist_from_mongo(estilo, cantante, "text_no_sw")
-            ArtistVisualization.show_freqdist(stats)
-            ArtistVisualization.radar_factory(10)
+
+            # 1. Primera visualización: FreqDist
+
+            statistics = Database_ops.read_artist_from_mongo(estilo, cantante, "text_no_sw")
+            ArtistVisualization.show_freqdist(statistics)
+
+            # Hay que cambiar stats para que pueda leer los datos completos y no tan solo las palabras, y con esos datos
+            # alimentar un spider chart donde ver cada cantante
+            #
+            # clean_data = Spider_preprocessing.df_cleaning(data)
+            #
+            # data_spider = data[data["_id"] == cantante][[tags.id, tags.text_no_sw, tags.unique_words,
+            #                                              tags.number_of_stopwords]]
+
+            ArtistVisualization.show_spider_graph(data_spider)
 
         elif checkpoint.lower() == "estilo":
             loggeo_principio_proceso(accion, "None", estilo)
 
-            stats = Database_ops.set_style_collection(estilo).find()
-            data = pd.DataFrame(list(stats))
             data_cloud = data[data["_id"] == estilo]["text_no_sw"].values
+            data_no_cloud = data[data["_id"] != estilo]
             # todo crear visualizaciones por estilo a partir del DF
             StyleVisualization.compare_artists(data, estilo)
             StyleVisualization.show_wordcloud(data_cloud)
+
+        # elif checkpoint.lower() == "proyecto":
+        #     loggeo_principio_proceso(accion, "None", STYLES)
+        #     StyleVisualization.swarmplot(data_no_cloud)
+
+
+    elif accion.lower() == "generar":
+        Generator.generar_cancion(estilo, cantante)
 
     else:
         logging.error("Acción no comtemplada")
