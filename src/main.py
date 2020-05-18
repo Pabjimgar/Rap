@@ -1,11 +1,11 @@
-from Scrapping import Scrapper
-from Visualization import StyleVisualization, ArtistVisualization
-from Preprocessing import Style_processing, Database_ops, Spider_preprocessing, Tags
-from Preprocessing.Tags import Tags
-from Generator import Generator
 import sys
 import logging
 import os.path
+from Scrapping import Scrapper
+from Visualization import StyleVisualization, ArtistVisualization
+from Preprocessing import Style_processing, Database_ops
+from Preprocessing.Tags import DbTags
+from Generator import Generator
 import pandas as pd
 
 STYLES = "Styles"
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     estilo = sys.argv[2]
     n_albums = sys.argv[3]
 
-    tags = Tags
+    dbTags = DbTags
 
     def loggeo_principio_proceso(accion, cantante, estilo):
         logging.info("accion: " + accion)
@@ -32,8 +32,7 @@ if __name__ == '__main__':
         if checkpoint == "cantante":
 
             loggeo_principio_proceso(accion, cantante, estilo)
-            lista_url_de_canciones = Scrapper.get_urls_from_songs_file(Scrapper.PATH_ARCHIVO_CANCIONES + estilo + "/" +
-                                                                       cantante + "_canciones.txt")
+            lista_url_de_canciones = Scrapper.get_urls_from_songs_file(Scrapper.PATH_ARCHIVO_CANCIONES+ estilo + "/" + cantante + "_canciones.txt")
 
             path_destino = Scrapper.PATH_LETRA_CANCIONES + estilo + "/" + cantante + Scrapper.TIPO_ARCHIVO
             if os.path.exists(path_destino):
@@ -76,21 +75,28 @@ if __name__ == '__main__':
             # data_spider = data[data["_id"] == cantante][[tags.id, tags.text_no_sw, tags.unique_words,
             #                                              tags.number_of_stopwords]]
 
-            ArtistVisualization.show_spider_graph(data_spider)
+            # ArtistVisualization.show_spider_graph(data_spider)
 
         elif checkpoint.lower() == "estilo":
             loggeo_principio_proceso(accion, "None", estilo)
 
-            data_cloud = data[data["_id"] == estilo]["text_no_sw"].values
-            data_no_cloud = data[data["_id"] != estilo]
-            # todo crear visualizaciones por estilo a partir del DF
-            StyleVisualization.compare_artists(data, estilo)
+            # 1. Primera visualización: WordCloud
+            data_cloud = data[data[DbTags.id] == estilo][DbTags.text_no_sw].values
             StyleVisualization.show_wordcloud(data_cloud)
 
-        # elif checkpoint.lower() == "proyecto":
-        #     loggeo_principio_proceso(accion, "None", STYLES)
-        #     StyleVisualization.swarmplot(data_no_cloud)
+            # 2. Segunda visualización: Graficos comparativos
+            data_no_cloud = data[data[DbTags.id] != estilo]
+            StyleVisualization.compare_artists(data, estilo)
 
+            # 3. Tercera visualización: Queso de discos
+            n_albums_artistas = data[data[DbTags.id] != estilo][DbTags.number_of_albums].values
+            nombres_artistas = data[data[DbTags.id] != estilo][DbTags.id].values
+
+            StyleVisualization.pieChart(n_albums_artistas, nombres_artistas)
+
+        elif checkpoint.lower() == "proyecto":
+            loggeo_principio_proceso(accion, "None", STYLES)
+            # StyleVisualization.swarmplot(data_no_cloud)
 
     elif accion.lower() == "generar":
         Generator.generar_cancion(estilo, cantante)

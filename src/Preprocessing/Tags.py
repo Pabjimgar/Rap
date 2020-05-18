@@ -1,4 +1,4 @@
-class Tags:
+class DbTags:
 
     id = "_id"
     text_raw = "text_raw"

@@ -1,10 +1,10 @@
 from Preprocessing import Database_ops
-from Preprocessing.Tags import Tags
+from Preprocessing.Tags import DbTags
 
 
 def consolidate_style(collection, estilo, collection_to_save):
 
-    tags = Tags
+    tags = DbTags
 
     total_number_of_songs = 0
     total_number_of_artists = 0

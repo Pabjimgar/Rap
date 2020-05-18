@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from Preprocessing import Counting_class, Spanish_corpus
-from Preprocessing.Tags import Tags
+from Preprocessing.Tags import DbTags
 import string
 
 CLIENT = MongoClient("localhost", 27017)
@@ -53,7 +53,7 @@ def file_to_mongo(file_path, artist_name, estilo, n_albums=1):
         number_of_stopwords = counted_dictionary_raw - num_of_relevant_words
         percentage = num_of_relevant_words / counted_dictionary_raw * 100
 
-        tags = Tags
+        tags = DbTags
 
         # Aqui guardamos el objeto que más tardaré registraremos en mongo
         final_dictionary = {

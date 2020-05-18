@@ -7,6 +7,7 @@ extra_stop_words = ["estribillo", "bis", "x2", "x3", "x4", "x5", "k", "coros", "
 
 
 def remove_stopwords(iterable, invalid_words=stop_words):
+    """Función diseñada para eliminar palabras que no queremos que formen parte del análisis"""
 
     for word in extra_stop_words:
         invalid_words.add(word)

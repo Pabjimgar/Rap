@@ -1,5 +1,5 @@
 from wordcloud import WordCloud, STOPWORDS
-from Preprocessing.Tags import Tags
+from Preprocessing.Tags import DbTags
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -7,10 +7,10 @@ import pandas as pd
 stopwords = set(STOPWORDS)
 fig = plt.figure(1, figsize=(12, 12))
 
-tags = Tags
+tags = DbTags
 
 
-def show_wordcloud(data, title = None):
+def show_wordcloud(data, title=None):
     """"""
 
     wordcloud = WordCloud(
@@ -76,3 +76,13 @@ def swarmplot(data):
         sns.swarmplot(x="Stat", y="value", data=data_graph, hue="_id", split=True, size=7)
         plt.legend(bbox_to_anchor=(1, 1), loc=2, borderaxespad=0)
         plt.show()
+
+
+def pieChart(data, labels):
+    """Función para generar un gráfico de tarta con los datos de los albumes"""
+
+    fig1, ax1 = plt.subplots()
+    ax1.pie(data, labels=labels, autopct='%1.1f%%', shadow=True, startangle=90)
+    ax1.axis('equal')
+
+    plt.show()
