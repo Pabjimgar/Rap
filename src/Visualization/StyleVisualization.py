@@ -51,8 +51,9 @@ def compare_artists(lyrics_data, estilo):
     plt.show()
 
 
-def swarmplot(feature_tag=tags.number_of_songs):
+def swarmplot(feature_tag=tags.percentage_of_relevant_words):
     """Función para generar un swarmplot que muestre diferentes variables"""
+
     length_tags = ["text_raw", "text_no_sw", "unique_words"]
 
     sns.set_style("whitegrid")
@@ -74,15 +75,8 @@ def swarmplot(feature_tag=tags.number_of_songs):
 
     melted_df = pd.melt(df, id_vars=[tags.id, "style"], var_name="tag").dropna(axis=0)
 
-    # melted_df = melted_df[[tags.id, "style", tags.number_of_albums, tags.number_of_songs]]
-
-    with sns.color_palette([
-        "#8ED752", "#F95643", "#53AFFE", "#C3D221", "#BBBDAF",
-        "#AD5CA2", "#F8E64E",
-        # "#F0CA42", "#F9AEFE", "#A35449",
-        # "#FB61B4", "#CDBD72", "#7673DA", "#66EBFF", "#8B76FF",
-        # "#8E6856", "#C3C1D7", "#75A4F9"
-    ], n_colors=56, desat=.9):
+    with sns.color_palette(
+            ["#8ED752", "#F95643", "#53AFFE", "#C3D221", "#BBBDAF", "#AD5CA2", "#F8E64E"], n_colors=56, desat=.9):
         plt.figure(figsize=(12, 10))
         sns.swarmplot(x="style", y="value", data=melted_df, hue="_id", split=True, size=7)
         plt.legend(bbox_to_anchor=(1, 1), loc=2, borderaxespad=0)

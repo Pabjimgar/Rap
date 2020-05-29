@@ -1,4 +1,4 @@
-from Preprocessing.Tags import Tags
+from Preprocessing.Tags import DbTags
 
 
 def df_cleaning(df):
@@ -9,11 +9,10 @@ def df_cleaning(df):
     :param df: pandas.DataFrame a limpiar
     :return: pandas.DataFrame limpio
     """
-    tags = Tags
+    tags = DbTags
 
     df[tags.text_raw] = df[tags.text_raw].str.len()
     df[tags.text_no_sw] = df[tags.text_no_sw].str.len()
     df[tags.unique_words] = df[tags.unique_words].str.len()
-    df[tags.number_of_stopwords] = df[tags.number_of_stopwords]
 
-    return df
+    return df[[tags.text_raw, tags.text_no_sw, tags.unique_words]]

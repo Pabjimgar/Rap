@@ -34,4 +34,5 @@ def show_spider_graph(data):
 
     # Give the plot a title and show it
     ax.set_title(name_of_band)
+    ax.set_ylim(0, 38000)
     plt.show()

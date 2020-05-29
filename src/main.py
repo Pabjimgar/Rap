@@ -3,7 +3,7 @@ import logging
 import os.path
 from Scrapping import Scrapper
 from Visualization import StyleVisualization, ArtistVisualization
-from Preprocessing import Style_processing, Database_ops
+from Preprocessing import Style_processing, Database_ops, Spider_preprocessing
 from Preprocessing.Tags import DbTags
 from Generator import Generator
 import pandas as pd
@@ -15,7 +15,7 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.INFO)
 
-    accion = str(input("Quieres escribir o leer?"))
+    accion = str(input("Quieres escribir, leer o generar?"))
     cantante = sys.argv[1]
     estilo = sys.argv[2]
 
@@ -35,7 +35,8 @@ if __name__ == '__main__':
         if checkpoint == "cantante":
 
             loggeo_principio_proceso(accion, cantante, estilo)
-            lista_url_de_canciones = Scrapper.get_urls_from_songs_file(Scrapper.PATH_ARCHIVO_CANCIONES+ estilo + "/" + cantante + "_canciones.txt")
+            lista_url_de_canciones = Scrapper.get_urls_from_songs_file(Scrapper.PATH_ARCHIVO_CANCIONES+ estilo + "/"
+                                                                       + cantante + "_canciones.txt")
 
             path_destino = Scrapper.PATH_LETRA_CANCIONES + estilo + "/" + cantante + Scrapper.TIPO_ARCHIVO
             if os.path.exists(path_destino):
@@ -70,15 +71,13 @@ if __name__ == '__main__':
             statistics = Database_ops.read_artist_from_mongo(estilo, cantante, "text_no_sw")
             ArtistVisualization.show_freqdist(statistics)
 
-            # Hay que cambiar stats para que pueda leer los datos completos y no tan solo las palabras, y con esos datos
-            # alimentar un spider chart donde ver cada cantante
-            #
-            # clean_data = Spider_preprocessing.df_cleaning(data)
-            #
-            # data_spider = data[data["_id"] == cantante][[tags.id, tags.text_no_sw, tags.unique_words,
-            #                                              tags.number_of_stopwords]]
+            # 2. Segunda visualización: SpiderPlot
+            clean_data = Spider_preprocessing.df_cleaning(data)
 
-            # ArtistVisualization.show_spider_graph(data_spider)
+            data_spider = data[data["_id"] == cantante][[DbTags.id, DbTags.text_raw, DbTags.text_no_sw,
+                                                         DbTags.unique_words]]
+
+            ArtistVisualization.show_spider_graph(data_spider)
 
         elif checkpoint.lower() == "estilo":
             loggeo_principio_proceso(accion, "None", estilo)
