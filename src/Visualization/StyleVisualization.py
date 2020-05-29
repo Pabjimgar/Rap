@@ -1,11 +1,16 @@
 from wordcloud import WordCloud, STOPWORDS
 from Preprocessing.Tags import DbTags
+from Preprocessing import Database_ops
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
 stopwords = set(STOPWORDS)
 fig = plt.figure(1, figsize=(12, 12))
+ESTILOS = ["Flamenco", "Indie", "Latino", "Pop", "Rock", "Rap"]
+columns = ['_id', 'max_words_per_song', 'min_words_per_song', 'number_of_albums', 'number_of_songs',
+           'number_of_stopwords', 'percentage_of_relevant_words', 'text_no_sw', 'text_raw', 'unique_words',
+           'word_average_per_song', "style"]
 
 tags = DbTags
 
@@ -46,39 +51,45 @@ def compare_artists(lyrics_data, estilo):
     plt.show()
 
 
-def swarmplot(data):
-    """"""
+def swarmplot(feature_tag=tags.number_of_songs):
+    """Función para generar un swarmplot que muestre diferentes variables"""
+    length_tags = ["text_raw", "text_no_sw", "unique_words"]
 
     sns.set_style("whitegrid")
+    df = pd.DataFrame(columns=columns)
 
-    data_graph = pd.melt(data, id_vars=[
-        tags.id,
-        tags.text_raw,
-        tags.text_no_sw,
-        tags.unique_words,
-        tags.number_of_songs,
-        tags.word_average_per_song,
-        tags.number_of_stopwords,
-        tags.percentage_of_relevant_words,
-        tags.max_words_per_song,
-        tags.min_words_per_song,
-        tags.number_of_albums,
-    ], var_name="Stat")
+    for estilo in ESTILOS:
+
+        stats = Database_ops.set_style_collection(estilo).find()
+        data = pd.DataFrame(list(stats))
+        data["style"] = estilo
+        df = df.append(data, ignore_index=True)
+
+    df = df[df[tags.id] != df["style"]]
+
+    if feature_tag in length_tags:
+        df[feature_tag] = df[feature_tag].str.len()
+
+    df = df[[tags.id, "style", feature_tag]]
+
+    melted_df = pd.melt(df, id_vars=[tags.id, "style"], var_name="tag").dropna(axis=0)
+
+    # melted_df = melted_df[[tags.id, "style", tags.number_of_albums, tags.number_of_songs]]
 
     with sns.color_palette([
         "#8ED752", "#F95643", "#53AFFE", "#C3D221", "#BBBDAF",
-        "#AD5CA2", "#F8E64E", "#F0CA42", "#F9AEFE", "#A35449"], n_colors=10, desat=.9):
+        "#AD5CA2", "#F8E64E",
+        # "#F0CA42", "#F9AEFE", "#A35449",
+        # "#FB61B4", "#CDBD72", "#7673DA", "#66EBFF", "#8B76FF",
+        # "#8E6856", "#C3C1D7", "#75A4F9"
+    ], n_colors=56, desat=.9):
         plt.figure(figsize=(12, 10))
-        # for tag in Tags:
-        #     if tag == "_id":
-        #         pass
-        #     else:
-        sns.swarmplot(x="Stat", y="value", data=data_graph, hue="_id", split=True, size=7)
+        sns.swarmplot(x="style", y="value", data=melted_df, hue="_id", split=True, size=7)
         plt.legend(bbox_to_anchor=(1, 1), loc=2, borderaxespad=0)
         plt.show()
 
 
-def pieChart(data, labels):
+def piechart(data, labels):
     """Función para generar un gráfico de tarta con los datos de los albumes"""
 
     fig1, ax1 = plt.subplots()

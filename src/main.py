@@ -7,6 +7,7 @@ from Preprocessing import Style_processing, Database_ops
 from Preprocessing.Tags import DbTags
 from Generator import Generator
 import pandas as pd
+import json
 
 STYLES = "Styles"
 
@@ -17,7 +18,9 @@ if __name__ == '__main__':
     accion = str(input("Quieres escribir o leer?"))
     cantante = sys.argv[1]
     estilo = sys.argv[2]
-    n_albums = sys.argv[3]
+
+    with open("albums.json") as f:
+        n_albums = json.load(f)[cantante]
 
     dbTags = DbTags
 
@@ -92,11 +95,12 @@ if __name__ == '__main__':
             n_albums_artistas = data[data[DbTags.id] != estilo][DbTags.number_of_albums].values
             nombres_artistas = data[data[DbTags.id] != estilo][DbTags.id].values
 
-            StyleVisualization.pieChart(n_albums_artistas, nombres_artistas)
+            StyleVisualization.piechart(n_albums_artistas, nombres_artistas)
 
         elif checkpoint.lower() == "proyecto":
             loggeo_principio_proceso(accion, "None", STYLES)
-            # StyleVisualization.swarmplot(data_no_cloud)
+            feature_tag = str(input("Introduzca el nombre de la variable a comparar: "))
+            StyleVisualization.swarmplot(feature_tag)
 
     elif accion.lower() == "generar":
         Generator.generar_cancion(estilo, cantante)

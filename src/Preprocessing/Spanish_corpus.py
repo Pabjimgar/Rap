@@ -3,7 +3,10 @@ import unidecode
 
 stop_words = set(stopwords.words('spanish'))
 extra_stop_words = ["estribillo", "bis", "x2", "x3", "x4", "x5", "k", "coros", "", " ", "q", "...", "pa", "ye", "oh",
-                    "si", "se", "tan", "ay", "na", "lere", "ke", "paparapapapa", "parapapa"]
+                    "si", "se", "tan", "ay", "na", "lere", "ke", "paparapapapa", "parapapa", "you", "i", "the", "ma",
+                    "on", "to", "ah", "eh", "d", "x", "to", "er", "aja", "cheik", "?que", "tralara", "yee", "uuuu",
+                    "we", "it", "and"
+                    ]
 
 
 def remove_stopwords(iterable, invalid_words=stop_words):
