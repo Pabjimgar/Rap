@@ -1,5 +1,5 @@
-import markovify
 import os
+import markovify
 
 
 def print_song(path):
