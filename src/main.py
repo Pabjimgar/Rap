@@ -1,31 +1,108 @@
-from Scrapping import MongoWriter, Scrapper
-from Visualization import WordCloud, MongoReader
 import sys
 import logging
+import os.path
+from Scrapping import Scrapper
+from Visualization import StyleVisualization, ArtistVisualization
+from Preprocessing import Style_processing, Database_ops, Spider_preprocessing
+from Preprocessing.Tags import DbTags
+from Generator import Generator
+import pandas as pd
+import json
+
+STYLES = "Styles"
 
 if __name__ == '__main__':
 
-    # 1. PASAMOS EL NOMBRE DEL CANTANTE Y EL ARCHIVO CORRESPONDIENTE PARA CONSEGUIR UN FICHERO CON LA LETRA DE LAS
-    #    CANCIONES DE LOS DOS PRIMEROS ÁLBUMES.
     logging.basicConfig(level=logging.INFO)
-    # logging(str(sys.thread_info))
 
+    accion = str(input("Quieres escribir, leer o generar?"))
     cantante = sys.argv[1]
-    lista_url_de_canciones = Scrapper.get_urls_from_songs_file(sys.argv[1] + "_canciones.txt")
     estilo = sys.argv[2]
-    pais = sys.argv[3]
 
-    logging.info("cantante: " + sys.argv[1])
-    logging.info("estilo: " + cantante)
-    logging.info("pais: " + cantante)
+    with open("albums.json") as f:
+        n_albums = json.load(f)[cantante]
 
-    # 2. POR CADA CANCION GENERAMOS UNA LÍNEA EN EL FICHERO DE SALIDA
-    for cancion in lista_url_de_canciones:
-        counter_por_cancion = Scrapper.get_text_from_letras_com_soup(cantante, cancion)
+    dbTags = DbTags
 
-    # 3. ESCRIBIMOS LOS RESULTADOS EN MONGO, DENTRO DE LA COLECCIÓN artists_raw
-    MongoWriter.file_to_mongo(cantante + ".txt", cantante, estilo, pais)
+    def loggeo_principio_proceso(accion, cantante, estilo):
+        logging.info("accion: " + accion)
+        logging.info("cantante: " + cantante)
+        logging.info("estilo: " + estilo)
 
-    stats = MongoReader.read_from_mongo(cantante)
+    if accion.lower() == "escribir":
+        checkpoint = str(input("Datos del cantante, del estilo o todo?"))
 
-    WordCloud.show_wordcloud(stats)
+        if checkpoint == "cantante":
+
+            loggeo_principio_proceso(accion, cantante, estilo)
+            lista_url_de_canciones = Scrapper.get_urls_from_songs_file(Scrapper.PATH_ARCHIVO_CANCIONES+ estilo + "/"
+                                                                       + cantante + "_canciones.txt")
+
+            path_destino = Scrapper.PATH_LETRA_CANCIONES + estilo + "/" + cantante + Scrapper.TIPO_ARCHIVO
+            if os.path.exists(path_destino):
+                logging.info("Este archivo de letras ya existe")
+                logging.info("Insertando letras de %s.txt" % cantante)
+            else:
+                for cancion in lista_url_de_canciones:
+                    counter_por_cancion = Scrapper.get_text_from_letras_com_soup(cantante, cancion)
+
+            Database_ops\
+                .file_to_mongo(Scrapper.PATH_LETRA_CANCIONES + estilo + "/" + cantante + ".txt", cantante, estilo, n_albums)
+
+        elif checkpoint == "estilo":
+            docs = Database_ops.set_style_collection(estilo)
+            Style_processing.consolidate_style(docs, estilo, STYLES)
+
+        elif checkpoint == "todo":
+            docs = Database_ops.set_style_collection(STYLES)
+            Style_processing.consolidate_style(docs, STYLES, STYLES)
+
+    elif accion.lower() == "leer":
+        checkpoint = str(input("Datos del cantante, del estilo o proyecto?"))
+
+        stats = Database_ops.set_style_collection(estilo).find()
+        data = pd.DataFrame(list(stats))
+
+        if checkpoint.lower() == "cantante":
+            loggeo_principio_proceso(accion, cantante, estilo)
+
+            # 1. Primera visualización: FreqDist
+
+            statistics = Database_ops.read_artist_from_mongo(estilo, cantante, "text_no_sw")
+            ArtistVisualization.show_freqdist(statistics)
+
+            # 2. Segunda visualización: SpiderPlot
+            clean_data = Spider_preprocessing.df_cleaning(data)
+
+            data_spider = data[data["_id"] == cantante][[DbTags.id, DbTags.text_raw, DbTags.text_no_sw,
+                                                         DbTags.unique_words]]
+
+            ArtistVisualization.show_spider_graph(data_spider)
+
+        elif checkpoint.lower() == "estilo":
+            loggeo_principio_proceso(accion, "None", estilo)
+
+            # 1. Primera visualización: WordCloud
+            data_cloud = data[data[DbTags.id] == estilo][DbTags.text_no_sw].values
+            StyleVisualization.show_wordcloud(data_cloud)
+
+            # 2. Segunda visualización: Graficos comparativos
+            data_no_cloud = data[data[DbTags.id] != estilo]
+            StyleVisualization.compare_artists(data, estilo)
+
+            # 3. Tercera visualización: Queso de discos
+            n_albums_artistas = data[data[DbTags.id] != estilo][DbTags.number_of_albums].values
+            nombres_artistas = data[data[DbTags.id] != estilo][DbTags.id].values
+
+            StyleVisualization.piechart(n_albums_artistas, nombres_artistas)
+
+        elif checkpoint.lower() == "proyecto":
+            loggeo_principio_proceso(accion, "None", STYLES)
+            feature_tag = str(input("Introduzca el nombre de la variable a comparar: "))
+            StyleVisualization.swarmplot(feature_tag)
+
+    elif accion.lower() == "generar":
+        Generator.generar_cancion(estilo, cantante)
+
+    else:
+        logging.error("Acción no comtemplada")
