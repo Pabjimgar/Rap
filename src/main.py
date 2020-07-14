@@ -19,9 +19,6 @@ if __name__ == '__main__':
     cantante = sys.argv[1]
     estilo = sys.argv[2]
 
-    with open("albums.json") as f:
-        n_albums = json.load(f)[cantante]
-
     dbTags = DbTags
 
     def loggeo_principio_proceso(accion, cantante, estilo):
@@ -31,6 +28,9 @@ if __name__ == '__main__':
 
     if accion.lower() == "escribir":
         checkpoint = str(input("Datos del cantante, del estilo o todo?"))
+
+        with open("albums.json") as f:
+            n_albums = json.load(f)[cantante]
 
         if checkpoint == "cantante":
 
